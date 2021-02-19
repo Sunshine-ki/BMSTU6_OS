@@ -4,18 +4,16 @@
 
 typedef struct
 {
-	int count;
-	char **path;
+	char *name;
+	int depth;
 } Path;
 
-Path *CreatePath();
+Path *CreatePath(char *name, int depth);
 
 void DestroyPath(Path *path);
 
-void Push(Path *path, char *elem);
+void ExpandPath(Path *path, char *filename, int curr_len);
 
-char *Pop(Path *path);
-
-void Output(const Path const * const path);
+void OutputPath(char *name, int depth, char const symbol);
 
 #endif

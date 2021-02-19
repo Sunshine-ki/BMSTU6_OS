@@ -1,85 +1,46 @@
-#include <dirent.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <errno.h>
 #include <string.h>
 
 #include "path.h"
 
-Path *CreatePath()
+Path *CreatePath(char *name, int depth)
 {
 	Path *res = (Path *)malloc(sizeof(Path));
-	res->count = 0;
-	res->path = NULL;
+	res->name = malloc(sizeof(char) * strlen(name) + 1);
+	strcpy(res->name, name);
+	res->depth = depth;
 
 	return res;
 }
 
 void DestroyPath(Path *path)
 {
-	for (int i = 0; i < path->count; i++)
-		if (path->path[i])
-			free(path->path[i]);
-	if (path->path)
-		free(path->path);
+	if (path->name)
+		free(path->name);
 	if (path)
 		free(path);
 }
 
-void Push(Path *path, char *elem)
+void ExpandPath(Path *path, char *filename, int curr_len)
 {
-	(path->count)++;
-
-	if (path->path)
-		path->path = realloc(path->path, sizeof(char *) * path->count);
-	else
-		path->path = malloc(sizeof(char *));
-
-	path->path[path->count - 1] = malloc(strlen(elem) + 1);
-	strcpy(path->path[path->count - 1], elem);
+	path->name = (char *)realloc(path->name, curr_len + strlen(filename) + 2); // +2 == +1 +1 == +'/' +'\0'
+	path->name[curr_len] = '/';
+	strcpy(&path->name[curr_len + 1], filename);
 }
 
-char *Pop(Path *path)
+void OutputPath(char *name, int depth, char const symbol)
 {
-	if (path->count < 1)
-		return NULL;
-
-	char *res = path->path[path->count - 1];
-	// free(path->path[path->count - 1]);
-	
-	(path->count)--;
-	path->path = realloc(path->path, sizeof(char *) * path->count);
-	
-	return res;
+	for (int i = 0; i < depth * 4; i++)
+		putchar(symbol);
+	printf(" %s\n", name);
 }
 
-void Output(const Path const * const path)
-{
-	for (int i = 0; i < path->count; i++)
-		printf("%s ", path->path[i]);
-	puts("");
-}
-
-// int main(void)
+// int main()
 // {
-// 	Path *begin_path = CreatePath();
-
-
-// 	Push(begin_path, "aaa");
-// 	Push(begin_path, "bbb");
-// 	Push(begin_path, "ccc");
-
-// 	Output(begin_path);
-
-// 	char *elem = Pop(begin_path);
-// 	printf("elem = %s\n", elem);
-// 	free(elem);
-
-// 	Output(begin_path);
-
-// 	DestroyPath(begin_path);
-
-// 	return 0;
+// 	char *a = malloc(sizeof(char) * 5);
+// 	strcpy(a, "aaa");
+// 	Path* first = CreatePath(a, 4);
+// 	printf("%d %s", first->depth, first->name);
+// 	DestroyPath(first);
 // }

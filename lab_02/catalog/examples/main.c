@@ -2,7 +2,6 @@
 #include <dirent.h>
 #include <limits.h>
 
-
 typedef int Myfunc(const char *, const struct stat *, int);
 
 static Myfunc myfunc;

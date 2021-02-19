@@ -17,7 +17,7 @@
 int main(int argc, char *argv[])
 {
 	if (argc != COUNT_ARGS)
-		err_sys("Укажите в аргументах командной строки начальный каталог.");
+		err_sys("Укажите в аргументах командной строки один начальный каталог.");
 	catalog(argv[DIR_NAME]);
 
 	printf("\n\nOk!\n");
