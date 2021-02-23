@@ -11,8 +11,8 @@
 #define _XOPEN_SOURCE 600 /* Single UNIX Specification, Version 3 */
 #endif
 
-#include <sys/types.h> /* some systems still require this */
-#include <sys/stat.h>
+#include <sys/types.h>	 /* some systems still require this */
+#include <sys/stat.h>	 // umask
 #include <sys/termios.h> /* for winsize */
 #ifndef TIOCGWINSZ
 #include <sys/ioctl.h>
