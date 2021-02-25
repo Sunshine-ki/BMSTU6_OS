@@ -1,4 +1,4 @@
-CFLAGS := -g
+CFLAGS := -pthread
 FILE_O := $(subst .c,.o,$(wildcard src/*.c))
 HEADERS_DIR := headers/
 

@@ -35,3 +35,18 @@ void err_quit(const char *fmt, ...)
 	va_end(ap);
 	exit(1);
 }
+
+/*
+* Об­ра­бот­ка фа­таль­ных оши­бок, не свя­зан­ных с сис­тем­ны­ми вы­зо­ва­ми.
+* Код ошиб­ки пе­ре­да­ет­ся в ви­де ар­гу­мен­та.
+* Вы­во­дит со­об­ще­ние и за­вер­ша­ет ра­бо­ту про­цес­са.
+*/
+void err_exit(int error, const char *fmt, ...)
+{
+	va_list
+		ap;
+	va_start(ap, fmt);
+	err_doit(1, error, fmt, ap);
+	va_end(ap);
+	exit(1);
+}

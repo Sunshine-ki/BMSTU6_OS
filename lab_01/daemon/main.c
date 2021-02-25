@@ -18,6 +18,7 @@
 #include <syslog.h>	  // syslog, openlog
 #include <sys/stat.h> // umask
 #include <unistd.h>
+#include <pthread.h>
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -29,6 +30,8 @@
 // S_IWUSR - user-write – дос­туп­но поль­зо­ва­те­лю для за­пи­си
 // S_IRGRP - group-read – дос­туп­но груп­пе для чте­ния
 // S_IROTH - other-read – дос­туп­но ос­таль­ным для чте­ния
+
+sigset_t mask;
 
 /*
  * Установка блокировки для записи на весь файл
@@ -166,10 +169,10 @@ void daemonize(const char *cmd)
      */
 	// Стр 556 конец раздела:
 	// ! Демон не яв­ля­ет­ся ли­де­ром се­ан­са, а по­это­му не име­ет воз­мож­но­сти об­рес­ти управ­ляю­щий тер­ми­нал.!
-	if ((pid = fork()) < 0)
-		err_quit("%s: ошибка вызова функции fork", cmd);
-	else if (pid != 0) // родительский процесс
-		exit(0);
+	// if ((pid = fork()) < 0)
+	// 	err_quit("%s: ошибка вызова функции fork", cmd);
+	// else if (pid != 0) // родительский процесс
+	// 	exit(0);
 
 	/*
      * Назначить корневой каталог текущим рабочим каталогом,
@@ -226,8 +229,40 @@ void daemonize(const char *cmd)
 	}
 }
 
+void *thr_fn(void *arg)
+{
+	int err, signo;
+	for (;;)
+	{
+		err = sigwait(&mask, &signo);
+		if (err != 0)
+		{
+			syslog(LOG_ERR, "ошиб­ка вы­зо­ва функ­ции sigwait");
+			exit(1);
+		}
+		switch (signo)
+		{
+		case SIGHUP:
+			syslog(LOG_INFO, "Чте­ние кон­фи­гу­ра­ци­он­но­го фай­ла");
+			// reread();
+			break;
+		case SIGTERM:
+			syslog(LOG_INFO, "по­лу­чен сиг­нал SIGTERM; вы­ход");
+
+			exit(0);
+		default:
+			syslog(LOG_INFO, "по­лу­чен не­пред­ви­ден­ный сиг­нал %d\n", signo);
+		}
+	}
+	return (0);
+}
+
 int main(void)
 {
+	int err;
+	pthread_t tid;
+	char *cmd;
+
 	daemonize("my_daemon");
 	/*
      * Блокировка файла для одной существующей копии демона
@@ -238,6 +273,12 @@ int main(void)
 		syslog(LOG_ERR, "Демон уже запущен!\n");
 		exit(1);
 	}
+	/*
+	* Соз­дать по­ток для об­ра­бот­ки SIGHUP и SIGTERM.
+	*/
+	err = pthread_create(&tid, NULL, thr_fn, 0);
+	if (err != 0)
+		err_exit(err, "не­воз­мож­но соз­дать по­ток");
 
 	syslog(LOG_WARNING, "Проверка пройдена!");
 
