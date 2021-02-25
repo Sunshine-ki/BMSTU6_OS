@@ -42,26 +42,27 @@ void catalog(char *pathname)
 		while ((entry = readdir(dir)) != NULL)
 		{
 			// Пропускаем ка­та­ло­ги "." и ".."
-			if (strcmp(entry->d_name, ".") == 0 ||
-				strcmp(entry->d_name, "..") == 0)
-				continue;
+			if (strcmp(entry->d_name, ".") != 0 &&
+				strcmp(entry->d_name, "..") != 0)
+			{
 
-			// Расширяем текущий путь.
-			// Т.е. добавляем в конец имя текущего файла.
-			ExpandPath(curr_path, entry->d_name, curr_len);
+				// Расширяем текущий путь.
+				// Т.е. добавляем в конец имя текущего файла.
+				ExpandPath(curr_path, entry->d_name, curr_len);
 
-			// printf("%s\n", curr_path->name);
-			OutputPath(entry->d_name, curr_path->depth, '*');
+				// printf("%s\n", curr_path->name);
+				OutputPath(entry->d_name, curr_path->depth, '*');
 
-			if (lstat(curr_path->name, &statbuf) == ERROR_LSTAT)
-				error_lstat();
+				if (lstat(curr_path->name, &statbuf) == ERROR_LSTAT)
+					error_lstat();
 
-			// Если каталог, то добавляем в стек.
-			if (S_ISDIR(statbuf.st_mode))
-				Push(stack, curr_path->name, curr_path->depth + 1);
+				// Если каталог, то добавляем в стек.
+				if (S_ISDIR(statbuf.st_mode))
+					Push(stack, curr_path->name, curr_path->depth + 1);
 
-			// printf("Catalog = %d\n", S_ISDIR());
-			// printf("%ld - %s [%d] %d\n\n", entry->d_ino, entry->d_name, entry->d_type, entry->d_reclen);
+				// printf("Catalog = %d\n", S_ISDIR());
+				// printf("%ld - %s [%d] %d\n\n", entry->d_ino, entry->d_name, entry->d_type, entry->d_reclen);
+			}
 		}
 
 		if (closedir(dir) < 0)
