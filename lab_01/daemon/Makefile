@@ -6,7 +6,7 @@ app.exe:  main.o $(FILE_O)
 	gcc -o app.exe $^  $(CFLAGS)
 
 %.o: %.c
-	gcc -c -I $(HEADERS_DIR) $^ $(CFLAGS)
+	gcc -c -I $(HEADERS_DIR) $^
 
 src/%.o: src/%.c
 	gcc -o $@ -c -I $(HEADERS_DIR) $^ $(CFLAGS)

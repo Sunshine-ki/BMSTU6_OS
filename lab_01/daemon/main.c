@@ -19,6 +19,7 @@
 #include <sys/stat.h> // umask
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h> // time, ctime
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -125,6 +126,8 @@ void daemonize(const char *cmd)
 	// Процесс потомок унаследует (дескрипт-ы открытых файлов, сигнальную маску) И
 	// маску создания файлов, т.к. предок сбросил маску создания, значит после вызова
 	// fork потомок унаследует чистую маску.
+
+	// Чтобы в дальнейшем демон мог создавать любые файлы с любыми правами.
 	umask(0); // user mask
 	/*
      * Получить максимально возможный номер дескриптора файла.
@@ -136,7 +139,7 @@ void daemonize(const char *cmd)
      * Стать лидером нового сеанса, чтобы утратить управляющий терминал.
      */
 	// Для того, чтобы в дальнейшем вызвать ф-цию setsid (создание нового сеанса)
-	// Нужно, чтобы процесс, который ее вызывает не был лидером группы. TODO: Не уверена.
+	// Нужно, чтобы процесс, который ее вызывает не был лидером группы.
 	if ((pid = fork()) < 0)
 		err_quit("%s: ошибка вызова функции fork", cmd);
 	else if (pid != 0) /* родительский процесс */
@@ -153,6 +156,8 @@ void daemonize(const char *cmd)
 	// int sigemptyset(sigset_t *set);
 	// sigemptyset инициализирует набор сигналов, указанный в set, и "очищает" его от всех сигналов.
 	sa.sa_handler = SIG_IGN;
+	// sa_mask задает маску сигналов, которые должны блокироваться при обработке сигнала.
+
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	// SIGHUP — сигнал, посылаемый процессу для уведомления о потере соединения с управляющим терминалом пользователя.
@@ -234,6 +239,8 @@ void *thr_fn(void *arg)
 	int err, signo;
 	for (;;)
 	{
+		// Ожидает сигналы, указанные в mask (у нас восстановлены все сигналы)
+		// Номер сигнала вернется в signo.
 		err = sigwait(&mask, &signo);
 		if (err != 0)
 		{
@@ -243,11 +250,12 @@ void *thr_fn(void *arg)
 		switch (signo)
 		{
 		case SIGHUP:
-			syslog(LOG_INFO, "Чте­ние кон­фи­гу­ра­ци­он­но­го фай­ла");
+			syslog(LOG_INFO, "Получен сигнал SIGHUP getlogin = %s", getlogin());
 			// reread();
 			break;
 		case SIGTERM:
-			syslog(LOG_INFO, "по­лу­чен сиг­нал SIGTERM; вы­ход");
+			// SIGTERM (от англ. signal и terminate — завершить) — сигнал, применяемый в POSIX-системах для запроса завершения процесса
+			syslog(LOG_INFO, "Получен сигнал SIGTERM; вы­ход");
 
 			exit(0);
 		default:
@@ -257,11 +265,23 @@ void *thr_fn(void *arg)
 	return (0);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	int err;
 	pthread_t tid;
 	char *cmd;
+	// Системный вызов sigaction используется для изменения
+	// действий процесса при получении соответствующего сигнала.
+	struct sigaction sa;
+
+	// char *strrchr(const char *s, int c);
+	// Функция strrchr() возвращает указатель на местонахождение последнего совпадения
+	// с символом c в строке s, а если символ не найден, то возвращают NULL.
+	// if ((cmd = strrchr(argv[0], '/')) == NULL)
+	// 	cmd = argv[0];
+	// else
+	// 	cmd++;
+	// daemonize(cmd);
 
 	daemonize("my_daemon");
 	/*
@@ -273,18 +293,51 @@ int main(void)
 		syslog(LOG_ERR, "Демон уже запущен!\n");
 		exit(1);
 	}
+
+	/*
+	* Вос­ста­но­вить дей­ст­вие по умол­ча­нию для сиг­на­ла SIGHUP
+	* и за­бло­ки­ро­вать все сиг­на­лы.
+	*/
+	// Нужно восстановить, т.к. в функции daemonize мы поставили
+	// Игнорирование данного сигнала.
+
+	// SIG_DFL - выполнения стандартных действий. (handler = обработчик)
+	sa.sa_handler = SIG_DFL;
+	// Зануляем маску. ("очищаем" его от всех сигналов.)
+	// sa_mask задает маску сигналов, которые должны блокироваться при обработке сигнала.
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	// Системный вызов sigaction используется для изменения действий процесса при получении соответствующего сигнала.
+	if (sigaction(SIGHUP, &sa, NULL) < 0)
+		err_quit("%s: не­воз­мож­но вос­ста­но­вить дей­ст­вие SIG_DFL для SIGHUP");
+	// int sigfillset(sigset_t *set);
+	// sigfillset полностью инициализирует набор set, в котором содержатся все сигналы.
+	sigfillset(&mask);
+	// int pthread_sigmask (int how const sigset_t *set sigset_t *oset);
+	// SIG_BLOCK - Union of the current mask and Fa set
+	if ((err = pthread_sigmask(SIG_BLOCK, &mask, NULL)) != 0)
+		err_exit(err, "ошиб­ка вы­пол­не­ния опе­ра­ции SIG_BLOCK");
+
 	/*
 	* Соз­дать по­ток для об­ра­бот­ки SIGHUP и SIGTERM.
 	*/
+	// NULL - атрибуты по умолчанию
+	// arg = 0 не передаем аргументы.
 	err = pthread_create(&tid, NULL, thr_fn, 0);
 	if (err != 0)
 		err_exit(err, "не­воз­мож­но соз­дать по­ток");
 
 	syslog(LOG_WARNING, "Проверка пройдена!");
 
+	// Переменная для сохранения текущего времени
+	long int ttime;
+
+	// Считываем текущее время
+	ttime = time(NULL);
+
 	while (1)
 	{
-		syslog(LOG_INFO, "Демон!");
+		syslog(LOG_INFO, "Демон! Время: %s", ctime(&ttime));
 		sleep(3);
 	}
 }
