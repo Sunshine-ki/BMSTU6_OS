@@ -1,6 +1,7 @@
 #include <linux/module.h> // MODULE_LICENSE, MODULE_AUTHOR
 #include <linux/kernel.h> // KERN_INFO
 #include <linux/init.h>	  // ​Макросы __init и ​__exit
+#include <linux/init_task.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alice");
@@ -8,7 +9,17 @@ MODULE_DESCRIPTION("My first module!");
 
 static int __init md_init(void)
 {
-	printk(KERN_INFO "Module: Hello world!\n");
+	struct task_struct *task = &init_task;
+
+	do {
+		printk(KERN_INFO "Module: %s - %d, parent: %s - %d\n",
+			task->comm, task->pid, task->parent->comm, task->parent->pid);
+	} while ((task = next_task(task)) != &init_task);
+
+	printk(KERN_INFO "Module: current: %s - %d, parent: %s - %d\n",
+		current->comm, current->pid, current->parent->comm, current->parent->pid);
+
+	printk(KERN_INFO "Module: module md start!\n");
 	return 0;
 }
 
