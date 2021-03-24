@@ -1,4 +1,5 @@
 // proc - предоставляет различную системную информацию.
+// https://www.opennet.ru/man.shtml?topic=proc&category=5&russian=0
 
 #include <stdio.h>
 #include <stdlib.h>
