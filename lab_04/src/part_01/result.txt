@@ -1,0 +1,146 @@
+[32mFile: [33m/proc/20827/stat[32m
+Content:
+[34mpid              20827           
+comm             (a.out)         
+state            S               
+ppid             16706           
+pgrp             20827           
+session          16706           
+tty_nr           34817           
+tpgid            20827           
+flags            4194304         
+minflt           100             
+cminflt          0               
+majflt           0               
+cmajflt          0               
+utime            886             
+stime            674             
+cutime           0               
+cstime           0               
+priority         20              
+nice             0               
+num_threads      1               
+itrealvalue      0               
+starttime        3442101         
+vsize            4620288         
+rss              189             
+rlim             18446744073709551615
+startcode        94544503463936  
+endcode          94544503466048  
+startstack       140729614000016 
+kstkesp          0               
+kstkeip          0               
+signal           0               
+blocked          0               
+sigignore        0               
+sigcatch         0               
+wchan            1               
+nswap            0               
+cnswap           0               
+
+
+[32mFile: [33m/proc/20827/environ[32m
+Content:
+[34mXDG_SEAT=seat0
+XDG_SESSION_ID=3
+LC_IDENTIFICATION=en_US.UTF-8
+WINDOWPATH=2
+LC_TELEPHONE=en_US.UTF-8
+DISPLAY=:0
+XDG_SESSION_TYPE=x11
+MANPATH=/home/linuxbrew/.linuxbrew/share/man:
+COLORTERM=truecolor
+GNOME_TERMINAL_SERVICE=:1.1041
+GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+DEFAULTS_PATH=/usr/share/gconf/gnome-xorg.default.path
+LOGNAME=lis
+TEXTDOMAIN=im-config
+LC_TIME=en_US.UTF-8
+SHELL=/bin/zsh
+PAPERSIZE=letter
+PATH=/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/lis/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/lis/.dotnet/tools
+LC_NUMERIC=en_US.UTF-8
+LC_PAPER=en_US.UTF-8
+IM_CONFIG_PHASE=2
+TEXTDOMAINDIR=/usr/share/locale/
+CLUTTER_IM_MODULE=xim
+QT4_IM_MODULE=xim
+XMODIFIERS=@im=ibus
+XDG_MENU_PREFIX=gnome-
+SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
+XAUTHORITY=/run/user/1000/gdm/Xauthority
+XDG_SESSION_DESKTOP=gnome-xorg
+GDMSESSION=gnome-xorg
+QT_IM_MODULE=ibus
+LC_MEASUREMENT=en_US.UTF-8
+LC_ADDRESS=en_US.UTF-8
+HOMEBREW_PREFIX=/home/linuxbrew/.linuxbrew
+XDG_CONFIG_DIRS=/etc/xdg/xdg-gnome-xorg:/etc/xdg
+MANDATORY_PATH=/usr/share/gconf/gnome-xorg.mandatory.path
+USERNAME=lis
+DESKTOP_SESSION=gnome-xorg
+XDG_RUNTIME_DIR=/run/user/1000
+GTK_IM_MODULE=ibus
+GTK_MODULES=gail:atk-bridge
+USER=lis
+PWD=/home/lis/university/github/os/lab_04/src/part_01/test
+VTE_VERSION=5202
+PKG_CONFIG_PATH=/usr/lib/pkgconfig
+LC_MONETARY=en_US.UTF-8
+HOME=/home/lis
+QT_ACCESSIBILITY=1
+HOMEBREW_REPOSITORY=/home/linuxbrew/.linuxbrew/Homebrew
+SSH_AGENT_PID=4271
+XDG_DATA_DIRS=/usr/share/gnome-xorg:/home/lis/.local/share/flatpak/exports/share/:/var/lib/flatpak/exports/share/:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+LANGUAGE=ru:en_CA:en
+LANG=ru_RU.UTF-8
+LC_NAME=en_US.UTF-8
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/216926c5_48c4_4edf_8087_e4a4fc7dc4e0
+GPG_AGENT_INFO=/run/user/1000/gnupg/S.gpg-agent:0:1
+SHLVL=1
+INFOPATH=/home/linuxbrew/.linuxbrew/share/info:
+XDG_VTNR=2
+TERM=xterm-256color
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+XDG_CURRENT_DESKTOP=GNOME
+HOMEBREW_CELLAR=/home/linuxbrew/.linuxbrew/Cellar
+SESSION_MANAGER=local/lispad:@/tmp/.ICE-unix/4173,unix/lispad:/tmp/.ICE-unix/4173
+S_COLORS=auto
+GSETTINGS_SCHEMA_DIR=/home/lis/data
+OLDPWD=/home/lis/university/github/os/lab_04/src/part_01/test
+ZSH=/home/lis/.oh-my-zsh
+PAGER=less
+LESS=-R
+LSCOLORS=Gxfxcxdxbxegedabagacad
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:
+_=/home/lis/university/github/os/lab_04/src/part_01/test/./a.out
+
+
+[32mFile: [33m/proc/20827/maps[32m
+Content:
+[34m55fcdb8b6000-55fcdb8b7000 r-xp 00000000 08:03 39662198                   /home/lis/university/github/os/lab_04/src/part_01/test/a.out
+55fcdbab6000-55fcdbab7000 r--p 00000000 08:03 39662198                   /home/lis/university/github/os/lab_04/src/part_01/test/a.out
+55fcdbab7000-55fcdbab8000 rw-p 00001000 08:03 39662198                   /home/lis/university/github/os/lab_04/src/part_01/test/a.out
+55fcdd7fb000-55fcdd81c000 rw-p 00000000 00:00 0                          [heap]
+7f17c1ade000-7f17c1cc5000 r-xp 00000000 08:01 5902468                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f17c1cc5000-7f17c1ec5000 ---p 001e7000 08:01 5902468                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f17c1ec5000-7f17c1ec9000 r--p 001e7000 08:01 5902468                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f17c1ec9000-7f17c1ecb000 rw-p 001eb000 08:01 5902468                    /lib/x86_64-linux-gnu/libc-2.27.so
+7f17c1ecb000-7f17c1ecf000 rw-p 00000000 00:00 0 
+7f17c1ecf000-7f17c1ef8000 r-xp 00000000 08:01 5902409                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f17c20cc000-7f17c20ce000 rw-p 00000000 00:00 0 
+7f17c20f8000-7f17c20f9000 r--p 00029000 08:01 5902409                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f17c20f9000-7f17c20fa000 rw-p 0002a000 08:01 5902409                    /lib/x86_64-linux-gnu/ld-2.27.so
+7f17c20fa000-7f17c20fb000 rw-p 00000000 00:00 0 
+7ffe2aa4f000-7ffe2aa70000 rw-p 00000000 00:00 0                          [stack]
+7ffe2abca000-7ffe2abcd000 r--p 00000000 00:00 0                          [vvar]
+7ffe2abcd000-7ffe2abce000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
+
+
+[32mFile: [33m/proc/20827/statm[32m
+Content:
+[34msize            resident        share           trs             drs             lrs             dt              
+1128            189             173             1               0               77              0
+              
+
