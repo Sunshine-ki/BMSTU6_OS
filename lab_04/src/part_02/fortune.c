@@ -1,5 +1,6 @@
 // https://github.com/soarpenguin/kernel-module/blob/master/proc_Fortune.c
 // https://elixir.bootlin.com/linux/v5.4/source/include/linux/fs.h
+// Также смотри статью (lab_04/docs/fortune.pdf)
 
 #include <linux/module.h> // MODULE_LICENSE, MODULE_AUTHOR
 #include <linux/kernel.h> // KERN_INFO
