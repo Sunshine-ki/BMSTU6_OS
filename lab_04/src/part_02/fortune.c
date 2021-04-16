@@ -41,23 +41,24 @@ static struct file_operations fops =
 
 int fortune_open(struct inode *sp_inode, struct file *sp_file)
 {
-	printk(KERN_DEBUG "Module: Вызван fortune_open\n");
+	printk(KERN_DEBUG "Module : Вызван fortune_open\n");
 	return 0;
 }
 
 int fortune_release(struct inode *sp_node, struct file *sp_file)
 {
-	printk(KERN_DEBUG "Module: Вызван fortune_release\n");
+	printk(KERN_DEBUG "Module : Вызван fortune_release\n");
 	return 0;
 }
 
+// buf - адрес источника в пространстве пользователя.
 static ssize_t fortune_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 {
 	int space_available = (COOKIE_BUF_SIZE - write_index) + 1;
 
 	if (space_available < count)
 	{
-		printk(KERN_DEBUG "Module: Буфер полон!");
+		printk(KERN_DEBUG "Module : Буфер полон!");
 		return -ENOSPC; // ENOSPC - памяти на устройстве не осталось.
 	}
 
@@ -71,7 +72,7 @@ static ssize_t fortune_write(struct file *file, const char __user *buf, size_t c
 	write_index += count;
 	cookie_buf[write_index - 1] = 0;
 
-	printk(KERN_DEBUG "Module: Запись в файл");
+	printk(KERN_DEBUG "Module : Запись в файл");
 	return count;
 }
 
@@ -92,6 +93,10 @@ static ssize_t fortune_read(struct file *file, char __user *buf, size_t count, l
 	{
 		len = sprintf(tmp, "%s\n", &cookie_buf[read_index]);
 
+		// copy_to_user используем, потому что мы работаем в режиме пользователя
+		// Процессы в режиме пользователя имеют виртуальное адресное пространство.
+		// Там нет абсолютных адресов. Поэтому происходит преобразование виртуального
+		// адреса в физический (поддерживается аппаратно)
 		copy_to_user(buf, tmp, len);
 		buf += len;
 		read_index += len;
@@ -99,7 +104,7 @@ static ssize_t fortune_read(struct file *file, char __user *buf, size_t count, l
 
 	*f_pos += len;
 
-	printk(KERN_DEBUG "Module: чтение из файла\n");
+	printk(KERN_DEBUG "Module : чтение из файла\n");
 	return len;
 }
 
@@ -110,7 +115,7 @@ static int __init fortune_init(void)
 
 	if (!cookie_buf)
 	{
-		printk(KERN_INFO "Module: Недостаточно памяти!\n");
+		printk(KERN_INFO "Module : Недостаточно памяти!\n");
 		return -ENOMEM; // ENOMEM - недостаточно памяти.
 	}
 
@@ -122,7 +127,7 @@ static int __init fortune_init(void)
 	if (!proc_entry)
 	{
 		vfree(cookie_buf);
-		printk(KERN_INFO "Module: Не удалось создать файл в proc!\n");
+		printk(KERN_INFO "Module : Не удалось создать файл в proc!\n");
 		return -ENOMEM;
 	}
 
@@ -134,7 +139,7 @@ static int __init fortune_init(void)
 	// Симвальная ссылка на "/proc/fortune".
 	proc_symlink("my_symlink_fortune", NULL, "/proc/fortune");
 
-	printk(KERN_INFO "Module: Модуль загружен в ядро!\n");
+	printk(KERN_INFO "Module : Модуль загружен в ядро!\n");
 	return 0;
 }
 
@@ -149,7 +154,7 @@ static void __exit fortune_exit(void)
 	if (cookie_buf)
 		vfree(cookie_buf);
 
-	printk(KERN_INFO "Module: Модуль выгружен из ядра!\n");
+	printk(KERN_INFO "Module : Модуль выгружен из ядра!\n");
 }
 
 module_init(fortune_init);
