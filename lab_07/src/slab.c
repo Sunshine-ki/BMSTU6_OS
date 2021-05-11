@@ -77,13 +77,17 @@ static struct inode *myfs_make_inode(struct super_block *sb, int mode)
 	if (ret)
 	{
 		// struct myfs_inode *my_inode = kmem_cache_alloc(cache, GFP_KERNEL); // get free pages kernel
-		inode_init_owner(ret, NULL, mode);
+		inode_init_owner(ret, NULL, mode); // Инициализирует uid,gid,mode для нового inode.
 
 		// *my_inode = (struct myfs_inode){
 		// 	.i_mode = ret->i_mode,
 		// 	.i_ino = ret->i_ino};
 
 		ret->i_size = PAGE_SIZE;
+		// current_time(ret) - время последнего изменения ret. (т.е. текущее время)
+		// mtime - modification time - время последней модификации (изменения) файла
+		// atime - access time - время последнего доступа к файлу
+		// ctime - change time - время последнего изменения атрибутов файла (данных которые хранятся в inode-области)
 		ret->i_atime = ret->i_mtime = ret->i_ctime = current_time(ret);
 		ret->i_private = &myfs_inode;
 	}
@@ -133,10 +137,9 @@ static int myfs_fill_sb(struct super_block *sb, void *data, int silent)
 // For my system:
 // https://elixir.bootlin.com/linux/v5.4/source/include/linux/fs.h#L2210
 static struct dentry *myfs_mount(struct file_system_type *type,
-								 int flags, char const *dev, void *data)
+								 int flags, char const *dev, void *data) // dev - имя устройства
 {
-	// TODO: Убрать
-	printk("myfs Name: %s", type->name);
+	// printk("myfs Name: %s", type->name);
 
 	// Примонтирует устройство и возвращает структуру, описывающую корневой каталог файловой системы.
 	// myfs_fill_sb - функция, которая будет вызвана  из mount_bdev, чтобы проинициализировать суперблок.
