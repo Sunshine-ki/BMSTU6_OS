@@ -10,9 +10,10 @@
 #include <errno.h>
 #include <sys/select.h>
 
-#define PORT 9877
+#include "constants.h"
 
 #define MAX_COUNT_SOCK 10
+// TODO: уменьшить MAX_COUNT_SOCK и проверить что будет...
 
 // Структура для сетевого взаимодействия.
 // struct sockaddr_in
@@ -45,31 +46,32 @@ int main(int argc, char *argv[])
 			// чтобы порядок байтов соответствовал сетевому.
 			.sin_port = htons(PORT)};
 
-	int max_sock;
-
-	printf("htons(PORT) = %d\n", htons(PORT));
-
-	struct sockaddr_in cli_addr;
 	int clen;
+	struct sockaddr_in cli_addr;
 
-	fd_set set;
+	fd_set set; // Набор дескрипторов.
+	int sock, max_sock;
+
+	// printf("htons(PORT) = %d\n", htons(PORT));
 
 	// AF_INET - открываемый сокет должен быть сетевым.
 	// SOCK_STREAM - требование, чтобы сокет был потоковым.
 	// 0 - протокол выбирается по умолчанию.
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	max_sock = sock;
 
 	if (socket < 0)
 	{
 		printf("socket() failed: %d\n", errno);
-		return EXIT_FAILURE;
+		return ERROR_CREATE_SOCKET;
 	}
 
+	// bind() - связывает сокет с заданным адресом.
+	// После вызова bind() программа-сервер становится доступна для соединения по заданному адресу (имени файла)
 	if (bind(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
 		printf("bind() failed: %d\n", errno);
-		return EXIT_FAILURE;
+		return ERROR_BIND_SOCKET;
 	}
 
 	// listen переводит сервер в режим ожидания запроса на соединение.
@@ -77,25 +79,24 @@ int main(int argc, char *argv[])
 	if (listen(sock, 1) < 0)
 	{
 		printf("listen() failed: %d\n", errno);
-		return -1;
+		return ERROR_LISTEN_SOCKET;
 	}
 
-	// accept() устанавливает соединение в ответ на запрос клиента и создает
-	// копию сокета для того, чтобы исходный сокет мог продолжать прослушивание.
-	// Сервер перенаправляет запрошенное соединение на другой сокет (newsock), оставляя
-	// сокет sock свободным для прослушивания запросов на установку соединения.
-
+	printf(GREEN "Сервер работает!\n");
 	// struct timeval timeout = {9, 0}; // 9 sec
-	while (1)
+	while (TRUE)
 	{
+		// Очищает набор.
 		FD_ZERO(&set);
+		// Добавляет sock к набору.
 		FD_SET(sock, &set);
 
-		max_sock = sock;
+		max_sock = sock; // max_sock нужен для select'а.
 		for (int i = 0; i < MAX_COUNT_SOCK; i++)
 		{
 			if (arr_sock[i] > 0)
 			{
+				// Добавляем в набор
 				FD_SET(arr_sock[i], &set);
 				max_sock = arr_sock[i] > max_sock ? arr_sock[i] : max_sock;
 			}
@@ -107,23 +108,25 @@ int main(int argc, char *argv[])
 		if (retval < 0)
 		{
 			printf("select() failed: %d\n", errno);
-			return -1;
+			return ERROR_SELECT_SOCKET;
 		}
 
-		// if (retval)
 		// Проверка на новое подключение.
 		if (FD_ISSET(sock, &set))
 		{
 			// Если sock остался в set, значит он изменил свой статус
 			// (к нему кто-то подключился) и значит он ожидает обработки.
-			printf("Данные доступны.\n");
-			printf("Новое подключение.\n");
+			printf(GREEN "Новое подключение.\n");
 
+			// accept() устанавливает соединение в ответ на запрос клиента и создает
+			// копию сокета для того, чтобы исходный сокет мог продолжать прослушивание.
+			// Сервер перенаправляет запрошенное соединение на другой сокет (newsock), оставляя
+			// сокет sock свободным для прослушивания запросов на установку соединения.
 			int newsock = accept(sock, NULL, NULL); // (struct sockaddr *)&cli_addr, &clen);
 			if (newsock < 0)
 			{
 				printf("accept() failed: %d\n", errno);
-				return -1;
+				return ERROR_ACCEPT_SOCKET;
 			}
 
 			int flag = 1;
@@ -132,77 +135,50 @@ int main(int argc, char *argv[])
 				if (arr_sock[i] == 0)
 				{
 					arr_sock[i] = newsock;
-					FD_SET(newsock, &set);
-					// TODO: тут бы из структурки (struct sockaddr *)&cli_addr достать данные о нем...
-					printf("Новое подключение к серверу! Клиент номер %d socket = %d", i, newsock);
+					printf(BLUE "Клиент номер %d\n", i);
 					flag = 0;
 				}
 			}
-			/*
-			int newsock = accept(sock, NULL, NULL); // (struct sockaddr *)&cli_addr, &clen);
-			if (newsock < 0)
+			if (flag)
 			{
-				printf("accept() failed: %d\n", errno);
-				return EXIT_FAILURE;
+				printf(RED "Больше нет места для новых клиентов.\n");
 			}
-
-			char buf[16];
-
-			read(newsock, buf, sizeof(buf));
-			printf("%s", buf);
-
-			fflush(stdout);
-
-			close(newsock);
-			*/
-
-			// char buf[10];
-			// int count = read(retval, buf, sizeof(buf));
-			// buf[count] = '\0';
-			// printf("%s", buf);
 		}
 
 		// Проверяем, послали ли клиенты сообщения.
 		for (int i = 0; i < MAX_COUNT_SOCK; i++)
 		{
-			if (arr_sock[i] > 0 && FD_ISSET(arr_sock[i], &set))
+			if (arr_sock[i] && FD_ISSET(arr_sock[i], &set))
 			{
 				// recvfrom - получить сообщение из сокета.
 				// Возвращает кол-во принятых байт.
 				// -1, если ошибка.
 
-				char buf[16];
+				char buf[MAX_LEN_BUF];
 
 				int rv = recvfrom(arr_sock[i], buf, sizeof(buf), 0, NULL, NULL);
-				printf("rv = %d", rv);
 				if (rv == 0)
 				{
-					printf("Отключение от сервера!");
+					printf(RED "Отключение от сервера клиента номер %d\n", i);
 					close(arr_sock[i]);
 					arr_sock[i] = 0;
 				}
 				else
 				{
-					printf("%s", buf);
+					int number = atoi(buf);
+					if (number)
+					{
+						printf(YELLOW "Клиент номер %d Result: %d\n", i, number * number);
+					}
+					else
+					{
+						printf(RED "Клиент номер %d. \"%s\" не является числом!\n", i, buf);
+					}
 				}
-				// TODO: Тут квадрат числе выводить.
 			}
 		}
 	}
-	// int newsock = accept(sock, (struct sockaddr *)&cli_addr, &clen);
-	// if (newsock < 0)
-	// {
-	// 	printf("accept() failed: %d\n", errno);
-	// 	return EXIT_FAILURE;
-	// }
 
-	// char buf[16];
-
-	// read(newsock, buf, sizeof(buf));
-	// printf("%s", buf);
-
-	// close(newsock);
 	close(sock);
-
-	return 0;
+	return OK;
 }

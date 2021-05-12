@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 	srvr_name.sa_family = AF_UNIX;
 	strcpy(srvr_name.sa_data, SOCK_NAME); // sa_data - имя файла сокета.
 
+	// bind() - связывает сокет с заданным адресом.
+	// После вызова bind() программа-сервер становится доступна для соединения по заданному адресу (имени файла)
 	if (bind(sock, &srvr_name, LEN_STRUCT_SOCKADDR(srvr_name)) < 0)
 	{
 		perror("bind failed");
