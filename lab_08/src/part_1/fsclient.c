@@ -20,6 +20,8 @@ void CreateMessage(char buf[MAX_MSG_LEN], int argc, char *argv[])
 		strcat(buf, argv[1]);
 }
 
+// Можно передать сообщение, как аргумент командной строки
+// По умолчанию будет передаваться строка "Hello world".
 int main(int argc, char *argv[])
 {
 	struct sockaddr srvr_name; // Данные об адресе сервера.
