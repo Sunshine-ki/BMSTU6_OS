@@ -4,10 +4,104 @@
 #include <linux/init_task.h>
 #include <linux/interrupt.h>
 #include <linux/workqueue.h>
+#include <asm/io.h>
 
 // Посмотреть инф-ию о обработчике прерывания
 // cat /proc/interrupts | head -n 1 && cat /proc/interrupts| grep my_irq_handler
 // CPUi - число прерываний, полученных i-ым процессорным ядром.
+
+#define KBD_DATA_REG 0x60 /* I/O port for keyboard data */
+#define KBD_SCANCODE_MASK 0x7f
+#define KBD_STATUS_MASK 0x80
+
+char *keyboard_key[] =
+	{
+		"ESC",
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9",
+		"0",
+		"-",
+		"=",
+		"bs",
+		"Tab",
+		"Q",
+		"W",
+		"E",
+		"R",
+		"T",
+		"Y",
+		"U",
+		"I",
+		"O",
+		"P",
+		"[",
+		"]",
+		"Enter",
+		"CTRL",
+		"A",
+		"S",
+		"D",
+		"F",
+		"G",
+		"H",
+		"J",
+		"K",
+		"L",
+		";",
+		"\'",
+		"`",
+		"LShift",
+		"\\",
+		"Z",
+		"X",
+		"C",
+		"V",
+		"B",
+		"N",
+		"M",
+		",",
+		".",
+		"/",
+		"RShift",
+		"PrtSc",
+		"Alt",
+		"Space",
+		"Caps",
+		"F1",
+		"F2",
+		"F3",
+		"F4",
+		"F5",
+		"F6",
+		"F7",
+		"F8",
+		"F9",
+		"F10",
+		"Num",
+		"Scroll",
+		"Home (7)",
+		"Up (8)",
+		"PgUp (9)",
+		"-",
+		"Left (4)",
+		"Center (5)",
+		"Right (6)",
+		"+",
+		"End (1)",
+		"Down (2)",
+		"PgDn (3)",
+		"Ins",
+		"Del",
+}; // All: 83 keys.
+
+#define KEYS_COUNT 83
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alice");
@@ -25,9 +119,29 @@ static void my_wq_function(struct work_struct *work) // вызываемая ф�
 	long long data = data64.counter;
 	// For kernel 5.4
 
+	char scancode;
+	int scan_normal;
+
 	printk("Module: my_wq_function data = %lld\n", data);
 	// TODO: А тут ошибка "dereferencing pointer to incomplete type ‘struct workqueue_struct’" (разыменование указателя на неполный тип)
-	printk("Module: my_wq_function data = %lld\n, WQ:name workqueue: %s, current work color:%d", data, my_wq->name, my_wq->work_color);
+	// printk("Module: my_wq_function data = %lld\n, WQ:name workqueue: %s, current work color:%d", data, my_wq->name, my_wq->work_color);
+
+	// Считывает скан-код нажатой клавиши.
+	scancode = inb(KBD_DATA_REG);
+	scan_normal = scancode & KBD_SCANCODE_MASK;
+
+	printk("Scan Code %d %s\n",
+		   scancode & KBD_SCANCODE_MASK,
+		   scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
+
+	if (!(scancode & KBD_STATUS_MASK))
+	{
+		if (scan_normal > KEYS_COUNT)
+			printk("Scan: I don't know this keyboard key :c");
+		else
+			printk("Scan: %s", keyboard_key[scan_normal - 1]);
+	}
+
 	return;
 }
 
