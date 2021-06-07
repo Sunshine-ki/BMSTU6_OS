@@ -90,11 +90,11 @@ irqreturn_t irq_handler(int irq, void *dev, struct pt_regs *regs)
 		// (тасклет всегда выполняется на том процессоре,
 		//  который его запланировал на выполнение)
 		printk(" + irq_handler был вызван");
-		// printk(" + Состояние тасклета (ДО ПЛАНИРОВАНИЯ): %lu\n", my_tasklet.state);
+		printk(" + Состояние тасклета (ДО ПЛАНИРОВАНИЯ): %lu\n", my_tasklet.state);
 		// printk(" + (TASKLET_STATE_RUN): %u\n", TASKLET_STATE_RUN);
 		// printk(" + (TASKLET_STATE_SCHED): %u\n", TASKLET_STATE_SCHED);
 		tasklet_schedule(&my_tasklet);
-		// printk(" + Состояние тасклета (ПОСЛЕ ПЛАНИРОВАНИЯ): %lu\n", my_tasklet.state);
+		printk(" + Состояние тасклета (ПОСЛЕ ПЛАНИРОВАНИЯ): %lu\n", my_tasklet.state);
 		return IRQ_HANDLED; // прерывание обработано
 	}
 	else
@@ -121,7 +121,7 @@ static const struct file_operations my_proc_fops =
 	{
 		.open = my_proc_open, // Логируем (определяем) свою собственную ф-ию.
 		.read = seq_read,
-		.llseek = seq_lseek,
+		// .llseek = seq_lseek,
 		.release = single_release, // используем single_release, потому что используем single_open (выше).
 };
 

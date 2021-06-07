@@ -5,6 +5,10 @@
 #include <linux/interrupt.h>
 #include <linux/workqueue.h>
 
+// Посмотреть инф-ию о обработчике прерывания
+// cat /proc/interrupts | head -n 1 && cat /proc/interrupts| grep my_irq_handler
+// CPUi - число прерываний, полученных i-ым процессорным ядром.
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alice");
 MODULE_DESCRIPTION("My module!");
@@ -20,7 +24,10 @@ static void my_wq_function(struct work_struct *work) // вызываемая ф�
 	atomic64_t data64 = work->data;
 	long long data = data64.counter;
 	// For kernel 5.4
+
 	printk("Module: my_wq_function data = %lld\n", data);
+	// TODO: А тут ошибка "dereferencing pointer to incomplete type ‘struct workqueue_struct’" (разыменование указателя на неполный тип)
+	printk("Module: my_wq_function data = %lld\n, WQ:name workqueue: %s, current work color:%d", data, my_wq->name, my_wq->work_color);
 	return;
 }
 
@@ -78,7 +85,6 @@ static int __init md_init(void)
 
 static void __exit md_exit(void)
 {
-
 	// Принудительно завершаем все работы в очереди.
 	// Вызывающий блок блокируется до тех пор, пока операция не будет завершена.
 	flush_workqueue(my_wq);
